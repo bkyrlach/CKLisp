@@ -65,8 +65,8 @@ class MethodFn(meth: Symbol) extends Fn {
             val rel = ClazzUtils.findBestMatchMethod(clazz, mname, args)
             val m = rel match {
               case EXACT(m) => m
-              case COMPATABLE(m) => m
-              case NOREL() => throw new RuntimeException("invalid method call")
+              case COMPATIBLE(m) => m
+              case NOREL => throw new RuntimeException("invalid method call")
             }
             m.invoke(obj, args.map(_.asInstanceOf[java.lang.Object]):_*)
         }
@@ -77,7 +77,7 @@ class MethodFn(meth: Symbol) extends Fn {
 
 class ConstructorFn(clazz: Symbol) extends Fn {
   def apply(env: Env, vals: List[Exp]): Any = {
-    val clazzName=clazz.name.substring(0, clazz.name.length()-1) //remove the last char "."
+    val clazzName=clazz.name.init
     vals match {
       case Nil => Class.forName(clazzName).newInstance
       case _ => 
@@ -85,9 +85,9 @@ class ConstructorFn(clazz: Symbol) extends Fn {
         val rel = ClazzUtils.findBestMatchConstructor(Class.forName(clazzName),args)
         val m = rel match {
           case EXACT(m) => m
-          case COMPATABLE(m) => m
-          case NOREL() => throw new RuntimeException("invalid method call")
-         }
+          case COMPATIBLE(m) => m
+          case NOREL => throw new RuntimeException("invalid method call")
+        }
         m.newInstance(args.map(_.asInstanceOf[java.lang.Object]):_*)
     }
   }
@@ -96,14 +96,14 @@ class ConstructorFn(clazz: Symbol) extends Fn {
 
 class tryFn extends Fn {
   def isCatch(exp: Exp) = exp match {
-      case LIST(v) => v match {
-        case xs::tail => xs match {
-          case SYMBOL(Symbol("catch")) => true
-          case _ => false
-        }
+    case LIST(v) => v match {
+      case xs::tail => xs match {
+        case SYMBOL(Symbol("catch")) => true
         case _ => false
       }
+      case _ => false
     }
+  }
   def catchTransform(cExp: LIST): (Class[_], Exp) = cExp.value match {
     case _::arg::body => arg match {
       case LIST(SYMBOL(x)::SYMBOL(y)::Nil) => (Class.forName(y.name),LIST(SYMBOL(Symbol("let"))::LIST(SYMBOL(x)::SYMBOL(Symbol("*ex*"))::Nil)::body))

@@ -16,6 +16,9 @@
         pexp (.parseAll reader (.exp reader) exp))
     (.handle org.cklisp.Handler (.get pexp) env)))
 
+;Doesn't work. :(
+(defn exit () (.exit java.lang.System 0))
+
 (defn first (lst) (.head lst))
 (defn rest (lst) (.tail lst))
 

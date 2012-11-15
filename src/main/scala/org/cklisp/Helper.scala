@@ -5,9 +5,9 @@ object Helper {
   def wrap(obj: Any): Exp = obj match {
     case exp: List[Any] => exp match {
       case Nil => LIST(Nil)
-      case xs::tail => xs match {
-        case Symbol("~") => UNQUOTE(wrap(tail.head)) //TODO should use head option
-        case Symbol("'") => QUOTE(wrap(tail.head)) //TODO should use head option
+      case hd::tl => hd match {
+        case Symbol("~") => UNQUOTE(wrap(tl.head)) //TODO should use head option
+        case Symbol("'") => QUOTE(wrap(tl.head)) //TODO should use head option
         case _ => LIST(exp.map(wrap))
       }
     }
@@ -21,13 +21,9 @@ object Helper {
   }
   
   
-  def unwrap(exp: Exp): Any = {
-    unwrap(exp,false, new NilEnv)
-  }
+  def unwrap(exp: Exp): Any = unwrap(exp,false, new NilEnv)
   
-  def unwrap(list: List[Exp]): Any = {
-    list.map(unwrap)
-  }
+  def unwrap(list: List[Exp]): Any = list.map(unwrap)
   
   def unwrap(exp: Exp, unquote: Boolean, env: Env) : Any = {
     exp match {
@@ -39,12 +35,12 @@ object Helper {
 	    case QUOTE(v) => Symbol("'")::List(unwrap(v,unquote,env))
 	    case LIST(v) => v.map(a => unwrap(a, unquote,env)).toList
 	  }
-    }
+  }
   
   def listAnytoListSymbol(args: List[Any]): List[Symbol] = args match {
     case Nil => Nil
-    case xs::tail => xs match {
-      case arg: Symbol => List(arg):::listAnytoListSymbol(tail)
+    case hd::tl => hd match {
+      case arg: Symbol => List(arg):::listAnytoListSymbol(tl)
       case _ => throw new RuntimeException("invalid fn statement")
     }
   }
@@ -52,12 +48,10 @@ object Helper {
   def buildAssignmentList(as: List[Exp]) : List[(Symbol, Exp)] = {
     val pairs = as.grouped(2);
     pairs.map { 
-      _ match {
-        case Nil => throw new RuntimeException("invalid assigment")
-        case xs::tail => Helper.unwrap(xs) match {
-          case xs: Symbol => (xs, tail.head)
-          case _ => throw new RuntimeException("invalid assignment list")
-        }
+      case Nil => throw new RuntimeException("invalid assigment")
+      case xs::tail => Helper.unwrap(xs) match {
+        case xs: Symbol => (xs, tail.head)
+        case _ => throw new RuntimeException("invalid assignment list")
       }
     }.toList
   }

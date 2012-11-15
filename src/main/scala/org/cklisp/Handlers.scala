@@ -9,6 +9,8 @@ object Handler {
 	    case UNQUOTE(v) => throw new RuntimeException("invalid unquote")
 	    case SYMBOL(v) => handleSymbol(v,env)
 	    case LIST(v) => callProc(v,env)
+	    //This seems wrong. Any thoughts?
+	    case COMMENT(v) => ()
 	  }
 	
 	def handle(list: List[Exp], env: Env): List[Any] = list match {
@@ -18,19 +20,19 @@ object Handler {
 		
 	def callProc(obj: List[Exp], env: Env) = obj match {
 	  case Nil => Nil
-	  case xs::tail => xs match {
+	  case hd::tl => hd match {
 	      case SYMBOL(sym) => sym match {
-	        case 'macro => handleMacro(tail,env)
-	        case 'def => handleDef(tail,env)
-	        case 'let => handleLet(tail, env)
-	        case 'fn => handleFn(tail,env)
-	        case 'if => handleIf(tail,env)
-	        case _ => handle(xs,env) match {
+	        case 'macro => handleMacro(tl,env)
+	        case 'def => handleDef(tl,env)
+	        case 'let => handleLet(tl, env)
+	        case 'fn => handleFn(tl,env)
+	        case 'if => handleIf(tl,env)
+	        case _ => handle(hd,env) match {
 	          case fn: Fn => fn(env, tail)
 	          case _ => throw new RuntimeException("not a function:" + sym)
 	        }
 	      }
-	      case _ => handle(xs,env) match {
+	      case _ => handle(hd,env) match {
 	        case fn: Fn => fn(env,tail)
 	        case _ => throw new RuntimeException("invlid function call")
 	      }
@@ -64,12 +66,12 @@ object Handler {
   
   def handleLet(exps: List[Exp], env: Env): Any = exps match {
     case Nil => throw new RuntimeException("invalid let statement")
-    case xs::body => xs match {
+    case hd::tl => hd match {
       case assign: LIST => {
         val pairs = Helper.buildAssignmentList(assign.value)
         val nenv = new ChildEnv(env)
         pairs.foreach(pair => nenv.assign(pair._1, handle(pair._2,nenv)))
-        body.map(exp => handle(exp,nenv)).last
+        tl.map(exp => handle(exp,nenv)).last
       }
       case _ => throw new RuntimeException("invalid let statement")
     }

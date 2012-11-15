@@ -3,6 +3,7 @@ import java.lang.Integer
 import java.lang.Double
 
 object Math {
+
 	def plus(x: Integer, y: Integer) = x + y
 	def plus(x: Double, y: Integer) = x + y
 	def plus(x: Integer, y: Double) = x + y

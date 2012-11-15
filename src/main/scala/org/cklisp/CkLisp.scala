@@ -36,17 +36,11 @@ object CkLisp extends App {
       case "-f"::file::rest => println("Final Result:"+handleFile(reader,env, file))
       case "--test"::rest => println("Final Result:"+handleFile(reader,env, "org/cklisp/test.lisp"))
       case _ => {
-          println("USAGE:")
+        println("USAGE:")
     	  println("no args => REPL")
     	  println("-f <file> => run file")
     	  println("--test => run test file")
       }
     }
-    
-    
-    
-    
-   }  
-    
-	
+  }  
 }

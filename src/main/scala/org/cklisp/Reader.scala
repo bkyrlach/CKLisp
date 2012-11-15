@@ -3,6 +3,8 @@ package org.cklisp
 import scala.util.parsing.combinator.RegexParsers
 
 class Reader extends RegexParsers{ 
+
+  def comment: Parser[COMMENT] = """;.*""".r ^^ { COMMENT(_) }
  
   def ident: Parser[SYMBOL] = """[a-zA-Z_<>=?\.+\-/\*][a-zA-Z_<>=?\$\.\*]*""".r ^^ { id => SYMBOL(Symbol(id)) }
   
@@ -22,7 +24,7 @@ class Reader extends RegexParsers{
   
   def act = ident | lst 
   
-  def exp = str | fnum | inum | lst | ident | quote | unquote | amp
+  def exp = comment | str | fnum | inum | lst | ident | quote | unquote | amp
   
   def namespace = rep(exp)
 }
